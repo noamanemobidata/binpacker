@@ -250,7 +250,7 @@ class Packer:
 
     def pack(
         self,
-        bigger_first=False,
+        bigger_first=True,
         distribute_items=False,
         number_of_decimals=DEFAULT_NUMBER_OF_DECIMALS,
     ):
@@ -448,7 +448,8 @@ app_ui = ui.page_fluid(
                 ),
                 width=2,
             ),
-            ui.input_select("bin_selector", "Select Bin to Display", choices=[]),
+            # ui.input_select("bin_selector", "Select Bin to Display", choices=[]),
+            ui.output_ui("bin_selector_ui"),
             ui.layout_column_wrap(
                 ui.card(ui.output_ui("packing_plot")),
                 ui.card(ui.output_ui("packing_summary")),
@@ -541,10 +542,17 @@ def server(input, output, session):
 
         packer.pack(distribute_items=True)
         packed_bins.set(packer.bins)
-        # Mettre à jour les choix du sélecteur
-        bin_choices = [bin.name for bin in packer.bins]
-        ui.update_select(
+
+    @output
+    @render.ui
+    def bin_selector_ui():
+        if packed_bins.get() is None:
+            return ui.div()  # Retourne un div vide si aucun bin n'est encore emballé
+
+        bin_choices = [bin.name for bin in packed_bins.get()]
+        return ui.input_select(
             "bin_selector",
+            "Select Bin to Display",
             choices=bin_choices,
             selected=bin_choices[0] if bin_choices else None,
         )
